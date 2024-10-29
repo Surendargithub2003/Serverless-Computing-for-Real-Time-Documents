@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <title>Document Text Analysis and Chat Application</title>
+    <style>
+    /* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+    color: #1F2937;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: calc(16px + 0.2vw);
+}
+
+/* Header Styling */
+header {
+    width: 100%;
+    background-color: #2563EB;
+    padding: 1rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    color: #fff;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Panel Styles */
+.panel {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 600px;
+    margin: 1rem;
+    padding: 1rem;
+}
+
+/* Content Panels */
+.text-content, .messages-container {
+    padding: 1rem;
+    height: 50vh;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.text-content {
+    background: #F9FAFB;
+    color: #374151;
+}
+
+/* Chat Messages */
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.message {
+    display: flex;
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+}
+
+.user-message {
+    align-self: flex-end;
+    background: #2563EB;
+    color: white;
+}
+
+.ai-message {
+    align-self: flex-start;
+    background: #F3F4F6;
+    color: #1F2937;
+}
+
+/* Loading Dots */
+.loading-dots {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    justify-content: center;
+}
+
+.dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    background: #9CA3AF;
+    border-radius: 50%;
+    animation: bounce 0.5s infinite;
+}
+
+.dot:nth-child(2) { animation-delay: 0.15s; }
+.dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* Button Styles */
+.send-button, .delete-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.send-button {
+    background: #2563EB;
+    color: white;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.send-button:hover {
+    background: #1D4ED8;
+}
+
+.delete-btn {
+    background: none;
+    color: #EF4444;
+}
+
+.delete-btn:hover {
+    color: #B91C1C;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .header-title {
+        font-size: 1.25rem;
+    }
+
+    .panel {
+        max-width: 90%;
+    }
+
+    .text-content, .messages-container {
+        height: 40vh;
+    }
+
+    .message {
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-container {
+        padding: 0 1rem;
+    }
+
+    .header-title {
+        font-size: 1rem;
+    }
+
+    .text-content, .messages-container {
+        height: 35vh;
+        font-size: 0.875rem;
+    }
+
+    .message {
+        font-size: 0.75rem;
+    }
+
+    .send-button, .delete-btn {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+    }
+}
+</style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-title">
+                <i class="fas fa-book text-3xl text-white"></i>
+                Document Analysis & Chat
+            </div>
+            <p>Ask me anything!</p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="panel">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold">Extracted Text</h2>
+            </div>
+            <div class="text-content" id="extractedText">
+                {{ text }}
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-semibold">Chat</h2>
+                <button class="delete-btn" onclick="deleteChat()"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="messages-container" id="chatMessages"></div>
+            <div id="loading" style="display:none;" class="loading-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex gap-2">
+                    <input type="text" id="question" placeholder="Type your question here..." class="flex-1 p-2 border border-gray-300 rounded" onkeydown="checkEnter(event)">
+                    <button class="send-button" onclick="askQuestion()"><i class="fas fa-paper-plane"></i> Send</button>
+                </div>
+            </div>
+        </div>
+      </div>
+      <button class="delete-btn mt-4" onclick="endChat()">End Chat</button>
+  </div>
+    </main>
+
+    <script>
+      function deleteChat() {
+          document.getElementById('chatMessages').innerHTML = '';
+      }
+  
+      function checkEnter(event) {
+          if (event.key === "Enter") {
+              askQuestion();
+          }
+      }
+  
+      async function askQuestion() {
+          const questionInput = document.getElementById('question');
+          const question = questionInput.value.trim();
+          if (question === "") return;
+  
+          const chatMessages = document.getElementById('chatMessages');
+  
+          // Append user message to the chat
+          const userMessageDiv = document.createElement('div');
+          userMessageDiv.className = "message user-message";
+          userMessageDiv.innerHTML = `<div>${question}</div>`;
+          chatMessages.appendChild(userMessageDiv);
+          
+          // Scroll smoothly to the latest message
+          chatMessages.scrollTo({
+              top: chatMessages.scrollHeight,
+              behavior: "smooth"
+          });
+  
+          // Show loading dots while waiting for response
+          document.getElementById('loading').style.display = "flex";
+  
+          try {
+              const response = await fetch('/ask', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      question: question,
+                      text: document.getElementById('extractedText').innerText
+                  })
+              });
+              
+              const data = await response.json();
+              const answer = data.answer || "No answer available.";
+  
+              // Append AI response to the chat
+              const aiResponseDiv = document.createElement('div');
+              aiResponseDiv.className = "message ai-message";
+              aiResponseDiv.innerHTML = `<div>${answer}</div>`;
+              chatMessages.appendChild(aiResponseDiv);
+  
+              // Delay to ensure content is fully added, then scroll
+              setTimeout(() => {
+                  chatMessages.scrollTo({
+                      top: chatMessages.scrollHeight,
+                      behavior: "smooth"
+                  });
+              }, 100);  // Small delay to ensure AI message is fully rendered
+  
+          } catch (error) {
+              console.error("Error:", error);
+              const errorDiv = document.createElement('div');
+              errorDiv.className = "message ai-message";
+              errorDiv.innerHTML = `<div>Error occurred while fetching answer.</div>`;
+              chatMessages.appendChild(errorDiv);
+  
+              // Scroll to latest error message
+              chatMessages.scrollTo({
+                  top: chatMessages.scrollHeight,
+                  behavior: "smooth"
+              });
+          } finally {
+              document.getElementById('loading').style.display = "none";
+              questionInput.value = "";
+          }
+      }
+      async function endChat() {
+            const bucketName = "{{ bucket }}"; // Use your bucket variable
+            const fileKey = "{{ key }}"; // Use your key variable
+
+            if (!bucketName || !fileKey) {
+                alert("Error: Bucket name or file key is missing.");
+                return;
+            }
+
+            const response = await fetch('/delete_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ bucket: bucketName, key: fileKey }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message);
+                // Optionally redirect or update the UI
+                document.getElementById('chatMessages').innerHTML = ''; // Clear chat messages
+            } else {
+                alert("Error: " + data.error);
+            }
+        }
+  </script>
+  
+  
+</body>
+</html>
