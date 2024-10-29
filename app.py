@@ -92,6 +92,13 @@ def ask_question():
         # Generate response without using 'prompt=' if not required
         response = model.generate_content(input_text)
         answer = response.text.strip()  # Extract and clean the generated answer
+        
+# Replace markdown syntax with HTML bold tags
+        answer = answer.replace("**", "<strong>")
+        
+# Replace markdown syntax with HTML bold tags
+        answer = answer.replace("*", "<strong>")
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
