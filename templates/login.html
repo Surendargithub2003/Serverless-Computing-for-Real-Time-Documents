@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Register - Modern Design</title>
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.0.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js/dist/amazon-cognito-identity.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* Previous styles remain the same until .form-container */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .auth-container {
+      width: 420px;
+      padding: 3rem;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(10px);
+      transform: translateY(0);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-container:hover {
+      transform: translateY(-5px);
+    }
+
+    .auth-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #23a6d5, transparent);
+      animation: loading 2s linear infinite;
+    }
+
+    @keyframes loading {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .auth-container h2 {
+      font-size: 2.5rem;
+      background: linear-gradient(45deg, #ee7752, #e73c7e, #23a6d5);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 2rem;
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #e1e1e1;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      color: #666;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .tab.active {
+      color: #23a6d5;
+    }
+
+    .tab::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #23a6d5;
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .tab.active::after {
+      transform: scaleX(1);
+    }
+
+    .form-container {
+      display: none;
+    }
+
+    .form-container.active {
+      display: block;
+    }
+
+    .input-container {
+      position: relative;
+      margin-bottom: 1.8rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .input-row .input-container {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .input-container input {
+      width: 100%;
+      padding: 15px 45px;
+      border: 2px solid #e1e1e1;
+      border-radius: 15px;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      transition: all 0.3s ease;
+    }
+
+    .input-container input:focus {
+      border-color: #23a6d5;
+      box-shadow: 0 0 15px rgba(35, 166, 213, 0.15);
+      outline: none;
+    }
+
+    .input-container i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #23a6d5;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+    }
+
+    .input-container input:focus + i {
+      color: #e73c7e;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(45deg, #23a6d5, #23d5ab);
+      border: none;
+      border-radius: 15px;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: 0.5s;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(35, 166, 213, 0.4);
+    }
+
+    .forgot-password {
+      display: block;
+      margin-top: 1.5rem;
+      text-align: center;
+      color: #666;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .forgot-password::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 1px;
+      bottom: -2px;
+      left: 50%;
+      background: #23a6d5;
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
+    }
+
+    .forgot-password:hover {
+      color: #23a6d5;
+    }
+
+    .forgot-password:hover::after {
+      width: 100%;
+    }
+
+    .message {
+      margin-top: 1rem;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      text-align: center;
+      animation: shake 0.5s ease-in-out;
+      display: none;
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+
+    .message.success {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+
+    .message:not(:empty) {
+      display: block;
+    }
+
+    .verification-container {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(35, 166, 213, 0.1);
+      border-radius: 15px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .verification-container.show {
+      display: block;
+    }
+
+    .verification-container p {
+      color: #666;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .resend-code {
+      color: #23a6d5;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      display: inline-block;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    @media (max-width: 480px) {
+      .auth-container {
+        width: 90%;
+        padding: 2rem;
+      }
+
+      .auth-container h2 {
+        font-size: 2rem;
+      }
+
+      .input-row {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .input-row .input-container {
+        margin-bottom: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="tabs">
+      <div class="tab active" data-tab="login">Login</div>
+      <div class="tab" data-tab="register">Register</div>
+    </div>
+
+    <div class="form-container active" id="loginForm">
+      <h2>Welcome Back</h2>
+      <div class="input-container">
+        <input type="text" id="loginUsername" placeholder="Username" required>
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="input-container">
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <i class="fas fa-lock"></i>
+      </div>
+      <button id="loginButton">Sign In</button>
+      <div id="loginMessage" class="message"></div>
+      <a href="#" class="forgot-password">Forgot your password?</a>
+    </div>
+
+    <div class="form-container" id="registerForm">
+      <h2>Create Account</h2>
+      <div class="input-row">
+        <div class="input-container">
+          <input type="text" id="registerFirstName" placeholder="First Name" required>
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="input-container">
+          <input type="text" id="registerLastName" placeholder="Last Name" required>
+          <i class="fas fa-user"></i>
+        </div>
+      </div>
+      <div class="input-container">
+        <input type="text" id="registerUsername" placeholder="Username" required>
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <div class="input-container">
+        <input type="email" id="registerEmail" placeholder="Email" required>
+        <i class="fas fa-envelope"></i>
+      </div>
+      <div class="input-container">
+        <input type="password" id="registerPassword" placeholder="Password" required>
+        <i class="fas fa-lock"></i>
+      </div>
+      <button id="registerButton">Sign Up</button>
+      <div id="registerMessage" class="message"></div>
+      <div id="verificationContainer" class="verification-container">
+        <p>Please enter the verification code sent to your email:</p>
+        <div class="input-container">
+          <input type="text" id="verificationCode" placeholder="Verification Code" required>
+          <i class="fas fa-key"></i>
+        </div>
+        <button id="verifyButton">Verify Account</button>
+        <span class="resend-code" id="resendCode">Resend verification code</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // AWS Cognito Configuration
+    const poolData = {
+      UserPoolId: 'ap-south-1_o9ToKwMah',
+      ClientId: '2va4cac443vvv29ukrk8sl0rqg'
+    };
+    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+    // Tab Switching Logic
+    const tabs = document.querySelectorAll('.tab');
+    const forms = document.querySelectorAll('.form-container');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Show corresponding form
+        forms.forEach(form => {
+          form.classList.remove('active');
+          if (form.id === `${target}Form`) {
+            form.classList.add('active');
+          }
+        });
+
+        // Clear messages
+        document.querySelectorAll('.message').forEach(msg => {
+          msg.textContent = '';
+          msg.classList.remove('error', 'success');
+        });
+
+        // Hide verification container when switching tabs
+        document.getElementById('verificationContainer').classList.remove('show');
+      });
+    });
+
+    // Login Logic
+    document.getElementById('loginButton').addEventListener('click', function() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      const messageElement = document.getElementById('loginMessage');
+    
+      const authenticationData = {
+        Username: username,
+        Password: password,
+      };
+    
+      const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+      const userData = {
+        Username: username,
+        Pool: userPool
+      };
+    
+      const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+    
+      cognitoUser.authenticateUser(authenticationDetails, {
+        onSuccess: function(result) {
+          messageElement.textContent = 'Login successful!';
+          messageElement.classList.add('success');
+          messageElement.style.display = 'block';
+          setTimeout(() => window.location.href = '/home', 1000);
+        },
+    
+        onFailure: function(err) {
+          messageElement.textContent = err.message || 'An error occurred';
+          messageElement.classList.add('error');
+          messageElement.style.display = 'block';
+        },
+
+        newPasswordRequired: function(userAttributes, requiredAttributes) {
+          window.location.href = '/home';
+        }
+      });
+    });
+
+    let lastUsername = ''; // Store username for verification
+
+    // Registration Logic
+    document.getElementById('registerButton').addEventListener('click', function() {
+      const username = document.getElementById('registerUsername').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const firstName = document.getElementById('registerFirstName').value;
+      const lastName = document.getElementById('registerLastName').value;
+      const messageElement = document.getElementById('registerMessage');
+
+      const attributeList = [
+        new AmazonCognitoIdentity.CognitoUserAttribute({
+          Name: 'email',
+          Value: email
+        }),
+        new AmazonCognitoIdentity.CognitoUserAttribute({
+          Name: 'given_name',
+          Value: firstName
+        }),
+        new AmazonCognitoIdentity.CognitoUserAttribute({
+          Name: 'family_name',
+          Value: lastName
+        })
+      ];
+
+      userPool.signUp(username, password, attributeList, null, function(err, result) {
+        if (err) {
+          messageElement.textContent = err.message || 'An error occurred';
+          messageElement.classList.add('error');
+          messageElement.style.display = 'block';
+          return;
+        }
+        
+        lastUsername = username; // Store username for verification
+        messageElement.textContent = 'Registration successful! Please check your email for verification code.';
+        messageElement.classList.add('success');
+        messageElement.style.display = 'block';
+        
+        // Show verification container
+        document.getElementById('verificationContainer').classList.add('show');
+      });
+    });
+
+    // Verification Logic
+    document.getElementById('verifyButton').addEventListener('click', function() {
+      const code = document.getElementById('verificationCode').value;
+      const messageElement = document.getElementById('registerMessage');
+
+      const userData = {
+        Username: lastUsername,
+        Pool: userPool
+      };
+
+      const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+      cognitoUser.confirmRegistration(code, true, function(err, result) {
+        if (err) {
+          messageElement.textContent = err.message || 'Verification failed';
+          messageElement.classList.add('error');
+          messageElement.style.display = 'block';
+          return;
+        }
+
+        messageElement.textContent = 'Verification successful! You can now login.';
+        messageElement.classList.add('success');
+        messageElement.style.display = 'block';
+
+        // Switch to login tab after successful verification
+        setTimeout(() => {
+          document.querySelector('[data-tab="login"]').click();
+        }, 2000);
+      });
+    });
+
+    // Resend Verification Code
+    document.getElementById('resendCode').addEventListener('click', function() {
+      const messageElement = document.getElementById('registerMessage');
+
+      const userData = {
+        Username: lastUsername,
+        Pool: userPool
+      };
+
+      const cognitoUser = new AmazonCognitoIdentity.CognitoUserAttribute(userData);
+
+      cognitoUser.resendConfirmationCode(function(err, result) {
+        if (err) {
+          messageElement.textContent = err.message || 'Failed to resend code';
+          messageElement.classList.add('error');
+          messageElement.style.display = 'block';
+          return;
+        }
+
+        messageElement.textContent = 'Verification code has been resent to your email';
+        messageElement.classList.add('success');
+        messageElement.style.display = 'block';
+      });
+    });
+  </script>
+</body>
+</html>

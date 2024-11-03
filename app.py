@@ -22,6 +22,10 @@ def split_text(text, max_length=500):
 
 @app.route('/')
 def index():
+    return render_template('login.html')
+
+@app.route('/home',methods=['GET'])
+def home():
     return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
@@ -117,6 +121,7 @@ def delete_file():
         return jsonify({'message': 'Chat is Successfully Ended'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
