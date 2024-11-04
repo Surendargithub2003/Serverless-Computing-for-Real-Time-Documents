@@ -1,0 +1,228 @@
+   /* Base and other styles (same as provided) */
+   * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+    color: #1F2937;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: calc(16px + 0.2vw);
+}
+
+/* Header Styling */
+header {
+    width: 100%;
+    background-color: #2563EB;
+    padding: 1rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    color: #fff;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Panel Styles */
+.panel {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 600px;
+    margin: 1rem;
+    padding: 1rem;
+}
+
+/* Content Panels */
+.text-content,
+.messages-container {
+    padding: 1rem;
+    height: 50vh;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.text-content {
+    background: #F9FAFB;
+    color: #374151;
+}
+
+/* Chat Messages */
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex-grow: 1;
+}
+
+.message {
+    display: flex;
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+}
+
+.user-message {
+    align-self: flex-end;
+    background: #2563EB;
+    color: white;
+}
+
+.ai-message {
+    align-self: flex-start;
+    background: #F3F4F6;
+    color: #1F2937;
+}
+
+/* Loading Dots */
+.loading-dots {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    justify-content: center;
+}
+
+.dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    background: #9CA3AF;
+    border-radius: 50%;
+    animation: bounce 0.5s infinite;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes bounce {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+/* Button Styles */
+.send-button,
+.delete-btn,
+.end-chat-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.send-button {
+    background: #2563EB;
+    color: white;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.send-button:hover {
+    background: #1D4ED8;
+}
+
+.delete-btn {
+    background: none;
+    color: #EF4444;
+}
+
+.delete-btn:hover {
+    color: #B91C1C;
+}
+
+/* End Chat Button */
+.end-chat-btn {
+    background: none;
+    color: #EF4444;
+}
+
+.end-chat-btn:hover {
+    color: #B91C1C;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .header-title {
+        font-size: 1.25rem;
+    }
+
+    .panel {
+        max-width: 90%;
+    }
+
+    .text-content,
+    .messages-container {
+        height: 40vh;
+    }
+
+    .message {
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-container {
+        padding: 0 1rem;
+    }
+
+    .header-title {
+        font-size: 1rem;
+    }
+
+    .text-content,
+    .messages-container {
+        height: 35vh;
+        font-size: 0.875rem;
+    }
+
+    .message {
+        font-size: 0.75rem;
+    }
+
+    .send-button,
+    .delete-btn,
+    .end-chat-btn {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+    }
+}
