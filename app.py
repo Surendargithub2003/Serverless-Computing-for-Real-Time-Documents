@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, url_for
 import boto3
 import json
 from google.generativeai import GenerativeModel
@@ -12,6 +12,9 @@ s3 = boto3.client('s3')
 
 # Set the API key as an environment variable
 os.environ["GOOGLE_API_KEY"] = "AIzaSyBnjqVHJ6QI62sicPiQyv2xk9rPv2uXstU"
+
+local_directory = 'static/files'
+os.makedirs(local_directory, exist_ok=True)
 
 # Initialize the GenerativeModel (assuming it reads from the environment variable)
 model = GenerativeModel("gemini-1.5-flash")  # Adjust this based on your actual API configuration
@@ -39,13 +42,19 @@ def upload_file():
         return 'No selected file', 400
 
     # Upload the file to S3
-    bucket_name = 'data-bucket-private'
+    bucket_name = 'privatebucketserver'
     s3_key = file.filename
 
+    local_file_path = os.path.join(local_directory, s3_key)
+    file.save(local_file_path)
+
     try:
-        s3.upload_fileobj(file, bucket_name, s3_key)
+        with open(local_file_path, 'rb') as f:
+            s3.upload_fileobj(f, bucket_name, s3_key)
     except Exception as e:
         return f'Error uploading file to S3: {str(e)}', 500
+    
+    file_url = url_for('static', filename=f'files/{s3_key}')
 
     # Invoke the Lambda function based on file type
     try:
@@ -57,9 +66,11 @@ def upload_file():
             file_type = 'excel'
         else:
             return 'Unsupported file type', 400
+        
+    
 
         response = lambda_client.invoke(
-            FunctionName='DocumentTextExtractor',
+            FunctionName='textract',
             InvocationType='RequestResponse',
             Payload=json.dumps({'bucket': bucket_name, 'key': s3_key, 'file_type': file_type})
         )
@@ -78,7 +89,7 @@ def upload_file():
     except Exception as e:
         return f'Error invoking Lambda function: {str(e)}', 500
 
-    return render_template('result.html', text=extracted_text, bucket=bucket_name, key=s3_key)
+    return render_template('result.html', text=extracted_text, bucket=bucket_name, key=s3_key, file_url=file_url)
 
 @app.route('/ask', methods=['POST'])
 def ask_question():
@@ -124,4 +135,4 @@ def delete_file():
     
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0',debug=True)

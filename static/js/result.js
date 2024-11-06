@@ -1,5 +1,5 @@
 let isVoiceInput = false; // Variable to track if input was from voice
-    
+
 function deleteChat() {
     document.getElementById('chatMessages').innerHTML = '';
 }
