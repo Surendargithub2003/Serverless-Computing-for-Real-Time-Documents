@@ -22,10 +22,15 @@
         </div>
     </header>
 
-    <embed src="{{ file_url }}" type="application/pdf" width="50%" height="600px">
+    <main class="container">
+        <!-- PDF Viewer -->
+        <div class="pdf-viewer-container">
+            <h2 class="section-title">Original Document</h2>
+            <embed src="{{ file_url }}" type="application/pdf" class="pdf-viewer">
+        </div>
 
-    <main class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="panel">
+        <!-- Extracted Text Panel -->
+        <div class="panel text-panel">
             <div class="p-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold">Extracted Text</h2>
             </div>
@@ -34,7 +39,8 @@
             </div>
         </div>
 
-        <div class="panel">
+        <!-- Chat Panel -->
+        <div class="panel chat-panel">
             <div class="p-4 border-b border-gray-200 flex justify-between items-center">
                 <h2 class="text-lg font-semibold">Chat</h2>
                 <div class="flex gap-2">
@@ -58,37 +64,34 @@
             </div>
         </div>
     </main>
-    <script src="{{ url_for('static', filename='js/result.js') }}"></script>
-    <script>async function endChat() {
-        const bucket = "{{ bucket }}"; // Pass the bucket name to JavaScript
-        const key = "{{ key }}"; // Pass the key to JavaScript
-        
-        try {
-        const response = await fetch('/delete_file', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bucket: bucket, key: key })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            // Successful deletion, redirect to index.html
-            window.location.href = '/';
-        } else {
-            // Handle error
-            console.error("Error deleting file:", data.error);
-            alert("Error ending chat: " + data.error);
-        }
-        } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred while ending the chat.");
-        }
-        }
-        
-        </script>
-    
 
+    <script src="{{ url_for('static', filename='js/result.js') }}"></script>
+    <script>
+        async function endChat() {
+            const bucket = "{{ bucket }}";
+            const key = "{{ key }}";
+            
+            try {
+                const response = await fetch('/delete_file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bucket: bucket, key: key })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    console.error("Error deleting file:", data.error);
+                    alert("Error ending chat: " + data.error);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred while ending the chat.");
+            }
+        }
+    </script>
 </body>
 
 </html>

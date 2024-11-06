@@ -42,7 +42,7 @@ def upload_file():
         return 'No selected file', 400
 
     # Upload the file to S3
-    bucket_name = 'privatebucketserver'
+    bucket_name = 'data-bucket-private'
     s3_key = file.filename
 
     local_file_path = os.path.join(local_directory, s3_key)
@@ -70,7 +70,7 @@ def upload_file():
     
 
         response = lambda_client.invoke(
-            FunctionName='textract',
+            FunctionName='DocumentTextExtractor',
             InvocationType='RequestResponse',
             Payload=json.dumps({'bucket': bucket_name, 'key': s3_key, 'file_type': file_type})
         )
@@ -127,12 +127,24 @@ def delete_file():
     if not bucket_name or not file_key:
         return jsonify({'error': 'Bucket name and file key are required.'}), 400
 
+    # Path to the local file
+    local_file_path = os.path.join(local_directory, file_key)
+
     try:
+        # Delete the file from S3
         s3.delete_object(Bucket=bucket_name, Key=file_key)
-        return jsonify({'message': 'Chat is Successfully Ended'}), 200
+
+        # Delete the file from the local "files" folder if it exists
+        if os.path.exists(local_file_path):
+            os.remove(local_file_path)
+            print(f"Local file {local_file_path} deleted.")
+        else:
+            print(f"Local file {local_file_path} not found.")
+
+        return jsonify({'message': 'File successfully deleted from both S3 and local storage.'}), 200
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',debug=True)

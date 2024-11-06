@@ -1,5 +1,5 @@
-   /* Base and other styles (same as provided) */
-   * {
+/* Base and other styles */
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -42,6 +42,35 @@ header {
     font-weight: bold;
 }
 
+/* Container for three-column layout */
+.container {
+    display: flex;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: auto;
+    padding: 1rem;
+}
+
+/* Section title styling */
+.section-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+/* PDF Viewer */
+.pdf-viewer-container {
+    width: 30%;
+}
+
+.pdf-viewer {
+    width: 100%;
+    height: 600px;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 /* Panel Styles */
 .panel {
     background: white;
@@ -52,11 +81,18 @@ header {
     flex-direction: column;
     width: 100%;
     max-width: 600px;
-    margin: 1rem;
     padding: 1rem;
 }
 
 /* Content Panels */
+.text-panel {
+    width: 35%;
+}
+
+.chat-panel {
+    width: 35%;
+}
+
 .text-content,
 .messages-container {
     padding: 1rem;
@@ -125,11 +161,9 @@ header {
 }
 
 @keyframes bounce {
-    0%,
-    100% {
+    0%, 100% {
         transform: translateY(0);
     }
-
     50% {
         transform: translateY(-4px);
     }
