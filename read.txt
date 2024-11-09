@@ -1,9 +1,9 @@
+app.py
+
 import os
 from flask import Flask, request, render_template, jsonify, url_for
 import boto3
 import json
-import fitz
-import logging
 from google.generativeai import GenerativeModel
 
 app = Flask(__name__)
@@ -105,143 +105,21 @@ def ask_question():
     # Create the input based on the expected format
     input_text = f"Answer the question: {question} \nContext: {full_text}"
 
-    # Logging inputs for debugging
-    logging.info(f"Question: {question}")
-    logging.info(f"Full Text: {full_text}")
-    logging.info(f"Input Text: {input_text}")
-
     try:
         # Generate response without using 'prompt=' if not required
         response = model.generate_content(input_text)
         answer = response.text.strip()  # Extract and clean the generated answer
-
-        if not answer:
-            logging.warning("Received empty response from model")
-            return jsonify({'error': 'No answer generated'}), 400
         
-        # Replace markdown syntax with HTML bold tags
+# Replace markdown syntax with HTML bold tags
         answer = answer.replace("**", "<strong>")
+        
+# Replace markdown syntax with HTML bold tags
         answer = answer.replace("*", "<strong>")
 
     except Exception as e:
-        logging.error(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
     return jsonify({'answer': answer})
-
-# Route to submit comment and store it in comments.txt
-@app.route('/submit_comment', methods=['POST'])
-def submit_comment():
-    comment = request.json.get('comment')
-
-    if not comment:
-        return jsonify({'error': 'Comment cannot be empty'}), 400
-
-    try:
-        # Append the comment to the comments.txt file
-        with open('comments.txt', 'a') as f:
-            f.write(comment + "\n")
-
-        # Process the comment using Gemini API for sentiment analysis
-        sentiment = analyze_comment_sentiment(comment)
-
-        return jsonify({'message': 'Comment submitted successfully', 'sentiment': sentiment}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# Function to analyze sentiment using Gemini API
-def analyze_comment_sentiment(comment):
-    try:
-        # Formulate the prompt to instruct Gemini to respond only with "Good" or "Bad"
-        input_text = f"Analyze the sentiment of this comment and respond with only 'Good' or 'Bad' or 'Neutral': {comment}"
-        response = model.generate_content(input_text)
-        
-        # Directly return the response text from Gemini
-        return response.text.strip()
-    except Exception as e:
-        return "Error analyzing sentiment"
-
-    
-@app.route('/comment', methods=['POST'])
-def add_comment():
-    comment_text = request.json.get('comment')
-    if not comment_text:
-        return jsonify({'error': 'No comment provided'}), 400
-
-    # Use Gemini API to analyze the comment
-    input_text = f"Categorize this comment as good or bad: {comment_text}"
-
-    try:
-        response = model.generate_content(input_text)
-        comment_category = response.text.strip()  # Get the categorization result
-
-        # Store the comment in comments.txt with its category
-        with open('comments.txt', 'a') as f:
-            f.write(f"Comment: {comment_text}\nCategory: {comment_category}\n\n")
-
-        return jsonify({'message': 'Comment added successfully', 'category': comment_category}), 200
-
-    except Exception as e:
-        return jsonify({'error': f"Error analyzing comment: {str(e)}"}), 500
-
-@app.route('/comments')
-def comments():
-    comments_list = []
-
-    try:
-        # Read comments from the comments.txt file
-        with open('comments.txt', 'r') as f:
-            comments_data = f.readlines()
-
-        for comment in comments_data:
-            sentiment = analyze_comment_sentiment(comment.strip())
-            comments_list.append({'text': comment.strip(), 'sentiment': sentiment})
-
-    except Exception as e:
-        return f"Error reading comments: {str(e)}", 500
-
-    return render_template('comments.html', comments=comments_list)
-
-
-@app.route('/dashboard')
-def dashboard():
-    bucket_name = 'data-bucket-private'
-    documents = []
-
-    try:
-        # List objects in the specified S3 bucket
-        response = s3.list_objects_v2(Bucket=bucket_name)
-        
-        for obj in response.get('Contents', []):
-            # Get the document key (file name)
-            key = obj['Key']
-            
-            # Get presigned URL for viewing the document inline
-            presigned_url = s3.generate_presigned_url('get_object',
-                                                      Params={'Bucket': bucket_name, 'Key': key},
-                                                      ExpiresIn=3600)
-
-            # Extract the page count for PDF documents
-            page_count = 0
-            if key.endswith('.pdf'):
-                # Download the document temporarily to extract page count
-                file_obj = s3.get_object(Bucket=bucket_name, Key=key)
-                pdf_file = file_obj['Body'].read()
-
-                # Use PyMuPDF to get page count
-                doc = fitz.open(stream=pdf_file, filetype="pdf")
-                page_count = doc.page_count
-
-            documents.append({
-                'key': key,
-                'url': presigned_url,
-                'page_count': page_count  # Include page count
-            })
-    except Exception as e:
-        return f"Error fetching documents from S3: {str(e)}", 500
-
-    return render_template('dashboard.html', documents=documents)
-
 
 @app.route('/delete_file', methods=['POST'])
 def delete_file():
@@ -272,3 +150,6 @@ def delete_file():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',debug=True)
+
+
+login.html

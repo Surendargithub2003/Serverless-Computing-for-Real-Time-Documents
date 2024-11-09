@@ -108,3 +108,32 @@ function startVoiceInput() {
 
     recognition.start();
 }
+function submitComment() {
+    const comment = document.getElementById('userComment').value;
+
+    if (!comment.trim()) {
+        alert("Please enter a comment.");
+        return;
+    }
+
+    // Send the comment to the backend
+    fetch('/submit_comment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ comment: comment })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.sentiment) {
+            alert(`Comment submitted! Sentiment: ${data.sentiment}`);
+        } else {
+            alert("Failed to submit comment.");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("An error occurred while submitting the comment.");
+    });
+}
